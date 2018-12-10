@@ -4,6 +4,6 @@ BLACK_JACK = 21
 BET = 10
 START_MONEY = 100
 VALUE_TO_REACH = 17
-
+MASK = "######"
 
 end

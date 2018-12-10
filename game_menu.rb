@@ -4,7 +4,9 @@ class GameMenu
   PLAYER_MENU = ["1 - Взять карту", "2 - пропустить ход", "3 - открыть карты"]
   GAME_METHODS = []
   ROUND_METHODS = []
-  PLAYER_METHODS = []
+  PLAYER_METHODS = {1 => :take_card,
+                    2 => :croupier_turn,
+                    3 => :reveal_cards}
   
   attr_reader :game
   

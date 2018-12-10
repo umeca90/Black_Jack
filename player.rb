@@ -22,7 +22,7 @@ class Player
   
   def initialize(name)
     @name = name
-    @balace = START_MONEY
+    @balance = START_MONEY
     @cards = []
     @cards_sum = 0
   end

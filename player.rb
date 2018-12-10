@@ -1,3 +1,7 @@
+require_relative "deck"
+require_relative "card"
+require_relative "base_values"
+
 class Player
   #Пользователь
   #Запрашивается имя, начинается игра
@@ -14,25 +18,38 @@ class Player
   #ход дилера
   #Игрок может : пропустить ход, проиграть, выиграть, открыть карты,получить 2 карты, взять еще 1 доп, если 3 то автоматически идет подсчет,
   include BaseValues
-  
+  attr_accessor :cards, :name, :balance, :cards_sum
   
   def initialize(name)
     @name = name
     @balace = START_MONEY
-    @current_cards = []
+    @cards = []
     @cards_sum = 0
   end
   
   def reset_cards
-    @current_cards = []
-    @cards_sum = 0
+    @cards = []
+    @cards_cards_sum = 0
   end
   
-  def hit
-    @current_cards << de
+  def count_cards_cards_sum
+    ace = false
+    @cards.each do |card|
+      @cards_sum += card.value
+      ace = true if card.name == "A"
+    end
+    @cards_sum += 10 if ace && @cards_sum > BLACK_JACK
+    @cards_sum
+  end
+
+  def take_card(card)
+    @cards << card if @cards.size < MAX_CARDS
   end
   
   def reveal_cards
   end
   
+  def make_bet
+    @balance -= BET if @balance > 0
+  end
 end

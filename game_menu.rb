@@ -1,7 +1,7 @@
 class GameMenu
   GAME_MENU = []
   ROUND_MENU = []
-  PLAYER_MENU = []
+  PLAYER_MENU = ["1 - Взять карту", "2 - пропустить ход", "3 - открыть карты"]
   GAME_METHODS = []
   ROUND_METHODS = []
   PLAYER_METHODS = []

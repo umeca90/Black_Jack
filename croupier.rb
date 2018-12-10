@@ -8,6 +8,7 @@ class Croupier
   #Может : пропустить ход(если 17 и более очков)
            #добавить карту(если менее 17 очков).Добав новая карта.Ход игрока.
   
-  def initialize()
+  def make_choice
+    @cards_sum < VALUE_TO_REACH ? :take_card : :skip
   end
 end

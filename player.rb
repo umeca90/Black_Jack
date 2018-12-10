@@ -29,10 +29,10 @@ class Player
   
   def reset_cards
     @cards = []
-    @cards_cards_sum = 0
+    @cards_sum = 0
   end
   
-  def count_cards_cards_sum
+  def count_cards_sum
     ace = false
     @cards.each do |card|
       @cards_sum += card.value
@@ -46,10 +46,23 @@ class Player
     @cards << card if @cards.size < MAX_CARDS
   end
   
-  def reveal_cards
+  def show_cards
+    @cards.each { |card| puts "#{card.name}||#{card.suit}" }
+    puts "#{@cards.sum}"
+  end
+  
+  def balance_valid?
+    return false if (@balance - BET) <= 0
+    true
+  end
+  
+  def lost?
+    true if @balace > BLACK_JACK
   end
   
   def make_bet
-    @balance -= BET if @balance > 0
+    raise "Одежда не принимаются, Ваш баланс #{@balace}" unless balance_valid?
+    @balance -= BET
   end
+  
 end

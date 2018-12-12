@@ -10,6 +10,6 @@ class Croupier < Player
            #добавить карту(если менее 17 очков).Добав новая карта.Ход игрока.
   
   def make_choice
-    @cards_sum < VALUE_TO_REACH ? :take_card : :skip
+    @cards_sum < VALUE_TO_REACH ? :take : :skip
   end
 end

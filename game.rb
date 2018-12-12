@@ -22,9 +22,6 @@ class Game
    def start_game
       enough_money?
       reset_game
-      @player.make_bet
-      @croupier.make_bet
-      @bank += BET * 2
       deal_cards
    end
    
@@ -43,11 +40,11 @@ class Game
      @croupier_ready = false
    end
    
-   def player_turn
+   def player_takes_card
       @player.take_card(@deck.card) unless @player.cards.size > MAX_CARDS
    end
    
-   def croupier_turn
+   def croupier_takes_card
       @croupier_ready = true
       selection = @croupier.make_choice
       case selection
@@ -67,12 +64,12 @@ class Game
    end
    
    def skip_move
-     croupier_turn
+     croupier_takes_card
    end
    
-   def player_reveal_cards
+   def player_reveals_cards
       @player_ready = true
-      croupier_turn unless @croupier_ready
+      croupier_takes_card unless @croupier_ready
    end
    
    #condition methods
@@ -113,4 +110,9 @@ class Game
        @croupier.balance += BET
      end
    end
+   
+   
 end
+
+
+

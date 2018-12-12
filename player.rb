@@ -18,8 +18,8 @@ class Player
   #ход дилера
   #Игрок может : пропустить ход, проиграть, выиграть, открыть карты,получить 2 карты, взять еще 1 доп, если 3 то автоматически идет подсчет,
   include BaseValues
-  attr_accessor :cards, :name, :balance, :cards_sum
-  
+  attr_accessor :cards, :name, :cards_sum, :balance
+  attr_reader 
   def initialize(name)
     @name = name
     @balance = START_MONEY
@@ -32,37 +32,47 @@ class Player
     @cards_sum = 0
   end
   
-  def count_cards_sum
-    ace = false
-    @cards.each do |card|
-      @cards_sum += card.value
-      ace = true if card.name == "A"
-    end
-    @cards_sum += 10 if ace && @cards_sum > BLACK_JACK
-    @cards_sum
-  end
-
-  def take_card(card)
-    @cards << card if @cards.size < MAX_CARDS
-  end
-  
-  def show_cards
-    @cards.each { |card| puts "#{card.name}||#{card.suit}" }
-    puts "#{@cards.sum}"
-  end
-  
-  def balance_valid?
-    return false if (@balance - BET) <= 0
-    true
-  end
-  
-  def lost?
-    true if @balace > BLACK_JACK
-  end
-  
   def make_bet
     raise "Одежда не принимаются, Ваш баланс #{@balace}" unless balance_valid?
     @balance -= BET
+  end  
+  
+  #def count_cards_sum
+    #ace = false
+    #@cards.each do |card|
+      #@cards_sum += card.value
+      #ace = true if card.name == "A"
+    #end
+    #@cards_sum += 10 if ace && @cards_sum >= BLACK_JACK
+    #@cards_sum
+  #end
+
+  def count_card_sum
+    @cards.last.value = 11 if @cards.last.name == "A" &&
+                              @cards_sum + 11 <= BLACK_JACK
+    @cards_sum += @cards.last.value    
   end
+
+  def take_card(card)
+    @cards << card 
+    count_card_sum
+  end
+  
+  def show_cards
+    cards = []
+    @cards.each { |card| cards << "#{card.name}#{card.suit}" }
+    puts cards, "#{@cards_sum}"
+  end
+  
+  def balance_valid?
+    @balance > 0
+  end
+  
+  def lost?
+    true if @cards_sum > BLACK_JACK
+  end
+  
+
+
   
 end

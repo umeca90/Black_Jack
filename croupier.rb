@@ -1,14 +1,16 @@
-class Croupier < Player
+# frozen_string_literal: true
 
-  #Управляется программой
-  #Имеет 100 баксов при старте
-  #Получает 2 рандомные карты, игрок не видит их
-  #После раздачи делается ставка в банк
-  #ход игрока....
-  #ход диллера - упр программой, цель набрать сумму очков макс близкую в 21
-  #Может : пропустить ход(если 17 и более очков)
-           #добавить карту(если менее 17 очков).Добав новая карта.Ход игрока.
-  
+require_relative "validation"
+class Croupier < Player
+  include Validation
+
+  validate :name, :presence
+  validate :name, :format, NAME_FORMAT
+  def initialize(name)
+    super
+    @entity = :croupier
+  end
+
   def make_choice
     @cards_sum < VALUE_TO_REACH ? :take : :skip
   end

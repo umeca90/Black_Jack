@@ -28,6 +28,7 @@ class GameInterface
 
   def round_start
     puts "#{@player.name}, твой баланс #{@player.balance} ставка  #{BET}"
+    puts "Баланс крупье #{@croupier.balance}"
     puts "Раздаём карты...."
   end
 
@@ -95,12 +96,12 @@ class GameInterface
     @croupier_ready ? @croupier.show_cards : MASK
   end
 
-  def name_error
-    puts "Ошибка ввода имени"
+  def name_error(err)
+    puts "Ошибка ввода имени  #{err}"
   end
 
-  def selection_error
-    puts "Ошибка ввода"
+  def selection_error(err)
+    puts "Ошибка ввода #{err}"
   end
 
   def croupier_skip

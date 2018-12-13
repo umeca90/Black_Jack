@@ -17,8 +17,8 @@ class Game # rubocop:disable Metrics/ClassLength
     @interface = GameInterface.new
     begin
       @player = create_player
-    rescue StandardError
-      @interface.name_error
+    rescue StandardError => err
+      @interface.name_error(err)
       retry
     end
     @croupier = create_croupier
@@ -28,7 +28,7 @@ class Game # rubocop:disable Metrics/ClassLength
   def round_start
     loop do
       choice = @interface.player_menu
-      send(choice)
+      send(choice) || exit_game
     end
   end
 
@@ -42,9 +42,10 @@ class Game # rubocop:disable Metrics/ClassLength
       validate_balance(@croupier)
       @interface.round_start
       round_start
-    rescue StandardError
-      @interface.selection_error
-      retry
+    rescue StandardError => err
+      @interface.selection_error(err)
+      choice = @interface.round_menu
+      send(choice) || exit_game
     end
   end
 
@@ -70,7 +71,7 @@ class Game # rubocop:disable Metrics/ClassLength
     when :take
       @croupier.take_card(@deck.card) if @croupier.cards.size < MAX_CARDS
     when :skip
-      croupier_skip
+      @interface.croupier_skip
     end
     true
   end
@@ -121,8 +122,8 @@ class Game # rubocop:disable Metrics/ClassLength
     else
       @interface.draw
     end
-    choice = @interface.round_menu
     loop do
+      choice = @interface.round_menu
       send choice || exit_game
     end
   end

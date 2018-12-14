@@ -14,7 +14,8 @@ require_relative "validation"
 # p [tp.path, tp.method_id]
 # end
 # trace.enable
-Game.new
+ game = Game.new
+ game.main_menu
 
 # Thread.current.backtrace
 # Tracer.off

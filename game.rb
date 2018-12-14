@@ -23,7 +23,6 @@ class Game # rubocop:disable Metrics/ClassLength
     end
     @croupier = create_croupier
     @interface.welcome
-    main_menu
   end
 
   def main_menu
@@ -96,7 +95,7 @@ class Game # rubocop:disable Metrics/ClassLength
     when :skip
       @interface.croupier_skip
     end
-    true
+    #true
   end
 
   def skip_move

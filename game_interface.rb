@@ -12,24 +12,30 @@ class GameInterface
   include BaseValues
   include Validation
 
-  ROUND_MENU = ["1 - сыграть еще, 2 - выход"].freeze
-  PLAYER_MENU = ["1 - Взять карту",
-                 "2 - пропустить ход",
-                 "3 - открыть карты",
-                 "4 - остановить игру"].freeze
-  ROUND_METHODS = { 1 => :new_game,
-                    2 => :exit_game }.freeze
-  PLAYER_METHODS = { 1 => :player_turn,
-                     2 => :skip_move,
-                     3 => :player_reveals_cards,
-                     4 => :exit_game }.freeze
-
   attr_accessor :croupier, :player
 
+  def welcome
+    puts "Привет! #{@player.name}, давай сыграем в Black Jack"
+  end
+
+  def main_menu
+    puts ROUND_MENU
+    gets.chomp.to_s
+  end
+
+  def player_info
+    print "#{@player.name}, твой баланс #{@player.balance} ставка  #{BET}"
+  end
+
+  def croupier_info
+    puts " || баланс крупье #{@croupier.balance}"
+  end
+
   def round_start
-    puts "#{@player.name}, твой баланс #{@player.balance} ставка  #{BET}"
-    puts "Баланс крупье #{@croupier.balance}"
-    puts "Раздаём карты...."
+    puts DELIMITER
+    puts "Начинаем игру"
+    puts "Раздаю карты...."
+    puts DELIMITER
   end
 
   def ask_name
@@ -37,20 +43,11 @@ class GameInterface
     gets.chomp.to_s
   end
 
-  def round_menu
-    puts ROUND_MENU
-    choice = gets.chomp.to_i
-
-    ROUND_METHODS[choice]
-  end
-
   def player_menu
     puts "Ваши карты #{player_cards}"
     puts "Ваш ход"
     puts PLAYER_MENU
-    choice = gets.chomp.to_i
-
-    PLAYER_METHODS[choice] # || break
+    gets.chomp.to_s
   end
 
   def player_move
@@ -59,9 +56,9 @@ class GameInterface
   end
 
   def croupier_move
-    puts "------------------------------------------"
+    puts DELIMITER
     puts "Ход крупье"
-    puts "------------------------------------------"
+    puts DELIMITER
   end
 
   def reveal_cards
@@ -77,11 +74,13 @@ class GameInterface
   end
 
   def player_won
+    puts "Вы выиграли!"
     puts "Выигрыш #{BET}, баланс #{@player.balance}"
   end
 
   def croupier_won
-    puts "Выграл крупье, ставка #{BET},Ваш баланс #{@player.balance}"
+    puts "Вы проиграли..."
+    puts "Выиграл крупье, ставка #{BET},Ваш баланс #{@player.balance}"
   end
 
   def draw
@@ -104,7 +103,17 @@ class GameInterface
     puts "Ошибка ввода #{err}"
   end
 
+  def player_error
+    puts "Ваш баланс = #{@player.balance}, невозможно продолжить"
+  end
+
+  def croupier_error
+    puts "Баланс крупье = #{@croupier.balance}, невозможно продолжить"
+  end
+
   def croupier_skip
+    puts DELIMITER
     puts "Пропускаю ход"
+    puts DELIMITER
   end
 end

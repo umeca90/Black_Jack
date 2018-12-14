@@ -22,37 +22,44 @@ class Game # rubocop:disable Metrics/ClassLength
       retry
     end
     @croupier = create_croupier
-    new_game
+    @interface.welcome
+    main_menu
   end
 
-  def round_start
+  def main_menu
     loop do
-      choice = @interface.player_menu
-      send(choice) || exit_game
+      choice = @interface.main_menu
+      case choice
+      when "1" then new_game
+      else exit_game
+      end
     end
   end
 
   private
 
   def new_game
+    return @interface.player_error unless @player.balance_valid?
+    return @interface.croupier_error unless @croupier.balance_valid?
+
     reset_game
     deal_cards
-    begin
-      validate_balance(@player)
-      validate_balance(@croupier)
-      @interface.round_start
-      round_start
-    rescue StandardError => err
-      @interface.selection_error(err)
-      choice = @interface.round_menu
-      send(choice) || exit_game
-    end
+    player_menu
   end
 
-  def deal_cards
-    2.times do
-      @player.take_card(@deck.card)
-      @croupier.take_card(@deck.card)
+  def player_menu
+    loop do
+      break if game_over?
+
+      @interface.player_info
+      @interface.croupier_info
+      choice = @interface.player_menu
+      case choice
+      when "1" then player_turn
+      when "2" then skip_move
+      when "3" then reveal_cards
+      else break
+      end
     end
   end
 
@@ -62,18 +69,14 @@ class Game # rubocop:disable Metrics/ClassLength
     @croupier.reset_cards
     @player_ready = false
     @croupier_ready = false
+    @interface.round_start
   end
 
-  def croupier_takes_card
-    selection = @croupier.make_choice
-    @croupier_ready = true
-    case selection
-    when :take
-      @croupier.take_card(@deck.card) if @croupier.cards.size < MAX_CARDS
-    when :skip
-      @interface.croupier_skip
+  def deal_cards
+    2.times do
+      @player.take_card(@deck.card)
+      @croupier.take_card(@deck.card)
     end
-    true
   end
 
   def player_turn
@@ -85,17 +88,25 @@ class Game # rubocop:disable Metrics/ClassLength
 
   def croupier_turn
     @interface.croupier_move
-    croupier_takes_card
+    selection = @croupier.make_choice
+    @croupier_ready = true
+    case selection
+    when :take
+      @croupier.take_card(@deck.card) if @croupier.cards.size < MAX_CARDS
+    when :skip
+      @interface.croupier_skip
+    end
+    true
   end
 
   def skip_move
     croupier_turn
   end
 
-  def player_reveals_cards
+  def reveal_cards
     @player_ready = true
-    croupier_takes_card unless @croupier_ready
     @interface.reveal_cards
+    croupier_turn unless @croupier_ready
     game_end if game_over?
   end
 
@@ -122,10 +133,7 @@ class Game # rubocop:disable Metrics/ClassLength
     else
       @interface.draw
     end
-    loop do
-      choice = @interface.round_menu
-      send choice || exit_game
-    end
+    true
   end
 
   def create_player

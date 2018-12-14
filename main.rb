@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "tracer"
 require_relative "card"
 require_relative "deck"
 require_relative "base_values"
@@ -9,4 +10,11 @@ require_relative "game"
 require_relative "game_interface"
 require_relative "validation"
 
+# trace = TracePoint.new(:call) do |tp|
+# p [tp.path, tp.method_id]
+# end
+# trace.enable
 Game.new
+
+# Thread.current.backtrace
+# Tracer.off

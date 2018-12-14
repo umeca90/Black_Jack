@@ -17,7 +17,7 @@ module Validation
 
   module InstanceMethods
     def validate!
-      itself.class.validations.each do |validation|
+      self.class.validations.each do |validation|
         validation_method = "validate_#{validation[:type]}".to_sym
         attribute = instance_variable_get("@#{validation[:attr]}")
         option = validation[:option]

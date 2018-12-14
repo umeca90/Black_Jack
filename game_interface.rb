@@ -45,7 +45,7 @@ class GameInterface
   end
 
   def player_menu
-    puts "Ваши карты #{player_cards}"
+    puts "Ваши карты #{player_cards}, сумма очков #{@player.hand.score}"
     puts DELIMITER
     puts "Карты крупье #{croupier_cards}"
     puts "Ваш ход"

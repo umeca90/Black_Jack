@@ -6,6 +6,7 @@ require_relative "base_values"
 require_relative "player"
 require_relative "croupier"
 require_relative "validation"
+require_relative "hand"
 
 class Game # rubocop:disable Metrics/ClassLength
   include BaseValues
@@ -43,6 +44,8 @@ class Game # rubocop:disable Metrics/ClassLength
 
     reset_game
     deal_cards
+    @player.make_bet
+    @croupier.make_bet
     player_menu
   end
 
@@ -64,8 +67,8 @@ class Game # rubocop:disable Metrics/ClassLength
 
   def reset_game
     @deck = Deck.new
-    @player.reset_cards
-    @croupier.reset_cards
+    @player.hand.reset_cards
+    @croupier.hand.reset_cards
     @player_ready = false
     @croupier_ready = false
     @interface.round_start
@@ -73,13 +76,13 @@ class Game # rubocop:disable Metrics/ClassLength
 
   def deal_cards
     2.times do
-      @player.take_card(@deck.card)
-      @croupier.take_card(@deck.card)
+      @player.hand.take_card(@deck.card)
+      @croupier.hand.take_card(@deck.card)
     end
   end
 
   def player_turn
-    @player.take_card(@deck.card) if @player.cards.size < MAX_CARDS
+    @player.hand.take_card(@deck.card) if @player.hand.cards.size < MAX_CARDS
     @interface.player_move
     croupier_turn
     game_end if game_over?
@@ -91,11 +94,12 @@ class Game # rubocop:disable Metrics/ClassLength
     @croupier_ready = true
     case selection
     when :take
-      @croupier.take_card(@deck.card) if @croupier.cards.size < MAX_CARDS
+      @croupier.hand.take_card(@deck.card) if
+      @croupier.hand.cards.size < MAX_CARDS
     when :skip
       @interface.croupier_skip
     end
-    #true
+    # true
   end
 
   def skip_move
@@ -104,14 +108,12 @@ class Game # rubocop:disable Metrics/ClassLength
 
   def reveal_cards
     @player_ready = true
+    @croupier_ready = true
     @interface.reveal_cards
-    croupier_turn unless @croupier_ready
     game_end if game_over?
   end
 
   def winner
-    @player.make_bet
-    @croupier.make_bet
     if player_won?
       @player.balance += BET * 2
     elsif croupier_won?
@@ -151,21 +153,25 @@ class Game # rubocop:disable Metrics/ClassLength
   # condition methods
 
   def player_won?
-    true if @player.cards_sum > @croupier.cards_sum && !@player.lost? ||
-            @player.cards_sum < @croupier.cards_sum && @croupier.lost? &&
-            !@player.lost?
+    true if @player.hand.score > @croupier.hand.score && !lost?(@player) ||
+            @player.hand.score < @croupier.hand.score && lost?(@croupier) &&
+            !lost?(@player)
   end
 
   def croupier_won?
-    true if @croupier.cards_sum > @player.cards_sum && !@croupier.lost? ||
-            @croupier.cards_sum < @player.cards_sum && @player.lost? &&
-            !@croupier.lost?
+    true if @croupier.hand.score > @player.hand.score && !lost?(@croupier) ||
+            @croupier.hand.score < @player.hand.score && lost?(@player) &&
+            !lost?(@croupier)
   end
 
   def game_over?
     return true if @croupier_ready && (@player_ready ||
-                                       @player.cards.size == MAX_CARDS)
+                                       @player.hand.cards.size == MAX_CARDS)
 
     false
+  end
+
+  def lost?(player)
+    true if player.hand.score > BLACK_JACK
   end
 end

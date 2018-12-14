@@ -1,8 +1,15 @@
 # frozen_string_literal: true
 
-require_relative "validation"
+# require_relative "card"
+# require_relative "deck"
+# require_relative "base_values"
+require_relative "player"
+
+# require_relative "validation"
+# require_relative "hand"
 class Croupier < Player
   include Validation
+  include BaseValues
 
   validate :name, :presence
   validate :name, :format, NAME_FORMAT
@@ -12,6 +19,6 @@ class Croupier < Player
   end
 
   def make_choice
-    @cards_sum < VALUE_TO_REACH ? :take : :skip
+    @hand.score < VALUE_TO_REACH ? :take : :skip
   end
 end

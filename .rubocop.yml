@@ -14,9 +14,10 @@ Style/ClassVars:
 
 Metrics/LineLength:
   Max: 90
+  
 Metrics/MethodLength:
   Max: 15
   
 Metrics/AbcSize:
   Exclude:
-  - "game_interface.rb"
+  - "game.rb"

@@ -7,6 +7,7 @@ require_relative "player"
 require_relative "croupier"
 require_relative "game"
 require_relative "validation"
+require_relative "hand"
 
 class GameInterface
   include BaseValues
@@ -45,6 +46,8 @@ class GameInterface
 
   def player_menu
     puts "Ваши карты #{player_cards}"
+    puts DELIMITER
+    puts "Карты крупье #{croupier_cards}"
     puts "Ваш ход"
     puts PLAYER_MENU
     gets.chomp.to_s
@@ -52,7 +55,7 @@ class GameInterface
 
   def player_move
     puts "Крупье выдал случайную карту"
-    puts "#{@player.cards.last.name}_#{@player.cards.last.suit}"
+    puts "#{@player.hand.cards.last.name}_#{@player.hand.cards.last.suit}"
   end
 
   def croupier_move
@@ -67,10 +70,10 @@ class GameInterface
 
   def game_end
     puts "Подсчет очков"
-    puts "Ваши карты #{@player.show_cards}",
-         "очки #{@player.cards_sum}"
-    puts "Карты крупье #{@croupier.show_cards}",
-         "очки #{@croupier.cards_sum}"
+    puts "Ваши карты #{@player.hand.show_cards}",
+         "очки #{@player.hand.score}"
+    puts "Карты крупье #{@croupier.hand.show_cards}",
+         "очки #{@croupier.hand.score}"
   end
 
   def player_won
@@ -88,11 +91,11 @@ class GameInterface
   end
 
   def player_cards
-    @player.show_cards
+    @player.hand.show_cards
   end
 
   def croupier_cards
-    @croupier_ready ? @croupier.show_cards : MASK
+    @croupier_ready ? @croupier.hand.show_cards : MASK
   end
 
   def name_error(err)

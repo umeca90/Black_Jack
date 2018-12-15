@@ -3,21 +3,20 @@
 require_relative "card"
 
 class Deck
-  attr_accessor :full_deck, :value
-  CARD_NAMES = %w[A K J Q] + (2..10).to_a
-  SUITS = ["♠", "♣", "♥", "♦"].freeze
+  attr_accessor :deck, :value
+
   def initialize
-    @full_deck = []
-    cards_hash = {}
-    CARD_NAMES.each { |name| cards_hash[name] = define_card_value(name.to_s) }
-    cards_hash.each do |name, value|
-      SUITS.each { |suit| @full_deck << Card.new(name.to_s, suit, value.to_i) }
+    @deck = []
+    cards = {}
+    Card::CARD_NAMES.each { |name| cards[name] = define_card_value(name.to_s) }
+    cards.each do |name, value|
+      Card::SUITS.each { |suit| @deck << Card.new(name.to_s, suit, value.to_i) }
     end
     shuffle
   end
 
   def shuffle
-    @full_deck.shuffle!
+    @deck.shuffle!
   end
 
   def define_card_value(card)
@@ -30,8 +29,8 @@ class Deck
   end
 
   def card
-    card = @full_deck.sample
-    @full_deck.delete(card)
+    card = @deck.sample
+    @deck.delete(card)
     card
   end
 end

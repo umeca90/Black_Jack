@@ -17,7 +17,7 @@ module Validation
 
   module InstanceMethods
     def validate!
-      itself.class.validations.each do |validation|
+      self.class.validations.each do |validation|
         validation_method = "validate_#{validation[:type]}".to_sym
         attribute = instance_variable_get("@#{validation[:attr]}")
         option = validation[:option]
@@ -37,7 +37,15 @@ module Validation
     end
 
     def validate_format(attribute, format)
-      raise "Неверный формат значения" if attribute !~ format
+      raise "Неверный формат для имени" if attribute !~ format
+    end
+
+    def validate_balance(gamer)
+      raise "У Вас мало денег" if gamer.entity == :player &&
+                                  !gamer.balance_valid?
+
+      raise "У крупье мало денег" if gamer.entity == :croupier &&
+                                     !gamer.balance_valid?
     end
   end
 end

@@ -2,109 +2,123 @@
 
 require_relative "card"
 require_relative "deck"
-require_relative "base_values"
 require_relative "player"
 require_relative "croupier"
 require_relative "validation"
+require_relative "hand"
 
-class Game
-  include BaseValues
+class Game # rubocop:disable Metrics/ClassLength
   include Validation
+  MAX_CARDS = 3
+  BLACK_JACK = 21
+  BET = 10
 
   attr_accessor :player, :croupier, :deck, :player_ready, :croupier_ready
 
-  def initialize(player, croupier)
-    @player = player
-    @croupier = croupier
-    start_game
+  def initialize
+    @interface = GameInterface.new
+    begin
+      @player = create_player
+    rescue StandardError => err
+      @interface.name_error(err)
+      retry
+    end
+    @croupier = create_croupier
+    @interface.welcome
   end
 
-  def start_game
-    enough_money?
+  def main_menu
+    loop do
+      choice = @interface.main_menu
+      case choice
+      when "1" then new_game
+      else exit_game
+      end
+    end
+  end
+
+  private
+
+  def new_game
+    return @interface.player_error unless @player.balance_valid?
+    return @interface.croupier_error unless @croupier.balance_valid?
+
     reset_game
     deal_cards
+    make_bet(@player)
+    make_bet(@croupier)
+    player_menu
   end
 
-  def deal_cards
-    2.times do
-      @player.take_card(@deck.card)
-      @croupier.take_card(@deck.card)
+  def player_menu
+    loop do
+      break if game_over?
+
+      @interface.player_info
+      @interface.croupier_info
+      choice = @interface.player_menu
+      case choice
+      when "1" then player_turn
+      when "2" then skip_move
+      when "3" then reveal_cards
+      else break
+      end
     end
   end
 
   def reset_game
     @deck = Deck.new
-    @player.reset_cards
-    @croupier.reset_cards
+    @player.hand.reset_cards
+    @croupier.hand.reset_cards
     @player_ready = false
     @croupier_ready = false
+    @interface.round_start
   end
 
-  def player_takes_card
-    @player.take_card(@deck.card) unless @player.cards.size > MAX_CARDS
-  end
-
-  def croupier_takes_card
-    @croupier_ready = true
-    selection = @croupier.make_choice
-    case selection
-    when :take
-      puts "Беру карту"
-      puts "------------------------------------------"
-      @croupier.take_card(@deck.card) unless @croupier.cards.size > MAX_CARDS
-    when :skip
-      puts "Пропускаю ход"
-      puts "------------------------------------------"
+  def deal_cards
+    2.times do
+      @player.hand.take_card(@deck.card)
+      @croupier.hand.take_card(@deck.card)
     end
   end
 
-  def player_cards
-    @player.show_cards
+  def player_turn
+    @player.hand.take_card(@deck.card) if @player.hand.cards.size < MAX_CARDS
+    @interface.player_move
+    croupier_turn
+    game_end if game_over?
   end
 
-  def croupier_cards
-    @croupier_ready ? @croupier.show_cards : MASK
+  def croupier_turn
+    @interface.croupier_move
+    selection = @croupier.make_choice
+    @croupier_ready = true
+    case selection
+    when :take
+      @croupier.hand.take_card(@deck.card) if
+      @croupier.hand.cards.size < MAX_CARDS
+    when :skip
+      @interface.croupier_skip
+    end
+    # true
   end
 
   def skip_move
-    croupier_takes_card
+    croupier_turn
   end
 
-  def player_reveals_cards
+  def reveal_cards
     @player_ready = true
-    croupier_takes_card unless @croupier_ready
+    @croupier_ready = true
+    @interface.reveal_cards
+    game_end if game_over?
   end
 
-  # condition methods
-
-  def enough_money?
-    raise "У Вас мало денег" unless @player.balance_valid?
-    raise "У крупье мало денег" unless @croupier.balance_valid?
-
-    true
-  end
-
-  def player_won?
-    true if @player.cards_sum > @croupier.cards_sum && !@player.lost? ||
-            @player.cards_sum < @croupier.cards_sum && @croupier.lost? &&
-            !@player.lost?
-  end
-
-  def croupier_won?
-    true if @croupier.cards_sum > @player.cards_sum && !@croupier.lost? ||
-            @croupier.cards_sum < @player.cards_sum && @player.lost? &&
-            !@croupier.lost?
-  end
-
-  def game_over?
-    return true if @croupier_ready && (@player_ready || @player.cards.size == MAX_CARDS)
-
-    false
+  def make_bet(player)
+    player.balance -= BET if player.balance_valid?
   end
 
   def winner
-    @player.make_bet
-    @croupier.make_bet
     if player_won?
       @player.balance += BET * 2
     elsif croupier_won?
@@ -113,5 +127,56 @@ class Game
       @player.balance += BET
       @croupier.balance += BET
     end
+  end
+
+  def game_end
+    @interface.game_end
+    winner
+    if player_won?
+      @interface.player_won
+    elsif croupier_won?
+      @interface.croupier_won
+    else
+      @interface.draw
+    end
+    true
+  end
+
+  def create_player
+    @player = Player.new(@interface.ask_name)
+    @interface.player = @player
+  end
+
+  def create_croupier
+    @croupier = Croupier.new("Johny_Red_Face")
+    @interface.croupier = @croupier
+  end
+
+  def exit_game
+    abort("Выхожу из игры...")
+  end
+  # condition methods
+
+  def player_won?
+    true if @player.hand.score > @croupier.hand.score && !lost?(@player) ||
+            @player.hand.score < @croupier.hand.score && lost?(@croupier) &&
+            !lost?(@player)
+  end
+
+  def croupier_won?
+    true if @croupier.hand.score > @player.hand.score && !lost?(@croupier) ||
+            @croupier.hand.score < @player.hand.score && lost?(@player) &&
+            !lost?(@croupier)
+  end
+
+  def game_over?
+    return true if @croupier_ready && (@player_ready ||
+                                       @player.hand.cards.size == MAX_CARDS)
+
+    false
+  end
+
+  def lost?(player)
+    true if player.hand.score > BLACK_JACK
   end
 end

@@ -2,99 +2,126 @@
 
 require_relative "card"
 require_relative "deck"
-require_relative "base_values"
 require_relative "player"
 require_relative "croupier"
 require_relative "game"
 require_relative "validation"
+require_relative "hand"
 
 class GameInterface
-  include BaseValues
   include Validation
-
-  ROUND_MENU = ["1 - сыграть еще, 2 - выход"].freeze
+  MASK = "######"
+  DELIMITER = "------------------------------------------"
+  ROUND_MENU = ["1 - Новая игра , 2 или прочий символ выход - выход"].freeze
   PLAYER_MENU = ["1 - Взять карту",
                  "2 - пропустить ход",
                  "3 - открыть карты",
-                 "4 - остановить игру"].freeze
-  ROUND_METHODS = { 1 => :round_start }.freeze
-  PLAYER_METHODS = { 1 => :player_move,
-                     2 => :croupier_move,
-                     3 => :reveal_cards }.freeze
+                 "Прочий ввод - остановить игру"].freeze
 
-  attr_reader :game
+  attr_accessor :croupier, :player
 
-  def initialize(game)
-    @game = game
-    round_start
+  def welcome
+    puts "Привет! #{@player.name}, давай сыграем в Black Jack"
+  end
+
+  def main_menu
+    puts ROUND_MENU
+    gets.chomp.to_s
+  end
+
+  def player_info
+    print "#{@player.name}, твой баланс #{@player.balance} ставка  #{Game::BET}"
+  end
+
+  def croupier_info
+    puts " || баланс крупье #{@croupier.balance}"
   end
 
   def round_start
-    puts "------------------------------------------"
-    puts "#{@game.player.name}, твой баланс #{@game.player.balance} ставка  #{BET}"
-    puts "------------------------------------------"
-    @game.start_game
-    puts "Раздаём карты...."
-    puts "У вас #{@game.player_cards}",
-         "у крупье #{@game.croupier_cards}"
-    player_menu
-  rescue StandardError => e
-    puts e.to_s
+    puts DELIMITER
+    puts "Начинаем игру"
+    puts "Раздаю карты...."
+    puts DELIMITER
   end
 
-  def round_menu
-    loop do
-      puts ROUND_MENU
-      choice = gets.chomp.to_i
-      send ROUND_METHODS[choice] || abort("Выхожу из игры...")
-    end
+  def ask_name
+    puts "Введите Ваше имя"
+    gets.chomp.to_s
   end
 
   def player_menu
-    loop do
-      puts "Ваш ход"
-      puts PLAYER_MENU
-      choice = gets.chomp.to_i
-      send PLAYER_METHODS[choice] || break
-    end
+    puts "Ваши карты #{player_cards}, сумма очков #{@player.hand.score}"
+    puts DELIMITER
+    puts "Карты крупье #{croupier_cards}"
+    puts "Ваш ход"
+    puts PLAYER_MENU
+    gets.chomp.to_s
   end
 
   def player_move
-    puts "Крупье выдаёт случайную карту"
-    @game.player_takes_card
-    puts "#{@game.player.cards.last.name}_#{@game.player.cards.last.suit}"
-    puts "Ваши карты #{@game.player.show_cards}"
-    puts "Ваши очки #{@game.player.cards_sum}"
-    croupier_move
+    puts "Крупье выдал случайную карту"
+    puts "#{@player.hand.cards.last.name}_#{@player.hand.cards.last.suit}"
   end
 
   def croupier_move
-    puts "------------------------------------------"
+    puts DELIMITER
     puts "Ход крупье"
-    puts "------------------------------------------"
-    @game.croupier_takes_card
-    game_end if @game.game_over?
+    puts DELIMITER
   end
 
   def reveal_cards
-    @game.player_reveals_cards
-    game_end if @game.game_over?
+    puts "Вы решили раскыть карты"
   end
 
   def game_end
     puts "Подсчет очков"
-    puts "Ваши карты #{@game.player.show_cards}",
-         "очки #{@game.player.cards_sum}"
-    puts "Карты крупье #{@game.croupier.show_cards}",
-         "очки #{@game.croupier.cards_sum}"
-    @game.winner
-    if @game.player_won?
-      puts "Выигрыш #{BET}, баланс #{@game.player.balance}"
-    elsif @game.croupier_won?
-      puts "Выграл крупье, ставка #{BET},Ваш баланс #{@game.player.balance}"
-    else
-      puts "Боевая ничья, Ваш баланс #{@game.player.balance}"
-    end
-    round_menu
+    puts "Ваши карты #{@player.hand.show_cards}",
+         "очки #{@player.hand.score}"
+    puts "Карты крупье #{@croupier.hand.show_cards}",
+         "очки #{@croupier.hand.score}"
+  end
+
+  def player_won
+    puts "Вы выиграли!"
+    puts "Выигрыш #{Game::BET}, баланс #{@player.balance}"
+  end
+
+  def croupier_won
+    puts "Вы проиграли..."
+    puts "Выиграл крупье, ставка #{Game::BET},Ваш баланс #{@player.balance}"
+  end
+
+  def draw
+    puts "Боевая ничья, Ваш баланс #{@player.balance}"
+  end
+
+  def player_cards
+    @player.hand.show_cards
+  end
+
+  def croupier_cards
+    @croupier_ready ? @croupier.hand.show_cards : MASK
+  end
+
+  def name_error(err)
+    puts "Ошибка ввода имени  #{err}"
+  end
+
+  def selection_error(err)
+    puts "Ошибка ввода #{err}"
+  end
+
+  def player_error
+    puts "Ваш баланс = #{@player.balance}, невозможно продолжить"
+  end
+
+  def croupier_error
+    puts "Баланс крупье = #{@croupier.balance}, невозможно продолжить"
+  end
+
+  def croupier_skip
+    puts DELIMITER
+    puts "Пропускаю ход"
+    puts DELIMITER
   end
 end
